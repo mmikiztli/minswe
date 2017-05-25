@@ -14,7 +14,6 @@ public class MineSweeper {
     private static final char MINE = '*';
     private static final char EMPTY = '.';
 
-
     private final int rowCount;
     private final int colCount;
     private final List<Cell> mines;
