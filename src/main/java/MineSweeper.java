@@ -11,6 +11,10 @@ import java.util.stream.IntStream;
  */
 public class MineSweeper {
 
+    private static final char MINE = '*';
+    private static final char EMPTY = '.';
+
+
     private final int rowCount;
     private final int colCount;
     private final List<Cell> mines;
@@ -50,8 +54,8 @@ public class MineSweeper {
 
     private void generateTable() {
         table = new char[rowCount][colCount];
-        initializeTable(revealed ? '0' : '.');
-        setTable(mines, '*');
+        initializeTable(revealed ? '0' : EMPTY);
+        setTable(mines, MINE);
         if (revealed) {
             fillTableMineCounts();
         }
@@ -66,7 +70,7 @@ public class MineSweeper {
             for (Cell cell : neighbours) {
                 long numNeighbouringMines = cell.neighbours().stream()
                                                 .filter(c -> c.isWithin(rowCount, colCount))
-                                                .filter(c -> table[c.getRow()][c.getCol()] == '*')
+                                                .filter(c -> table[c.getRow()][c.getCol()] == MINE)
                                                 .count();
                 table[cell.getRow()][cell.getCol()] = Long.toString(numNeighbouringMines).charAt(0);
             }
