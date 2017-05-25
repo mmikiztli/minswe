@@ -1,65 +1,98 @@
+
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Random;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * Created by marti on 2017.05.23..
  */
 public class MineSweeper {
 
+    private final int rowCount;
+    private final int colCount;
+    private final List<Cell> mines;
+    private final Boolean revealed;
     private char[][] table;
-    private Random randStar;
 
-    public MineSweeper(int rowNum, int colNum) {
-        table = new char[rowNum][colNum];
-        generateMines();
-        generateFields('.');
+    public MineSweeper(int rowCount, int colCount) {
+        this(rowCount, colCount, generateMines(rowCount, colCount), false);
     }
 
-    private void generateFields(char character) {
-        for(int i=0; i < table.length; i++) {
-            for (int j=0; j < table[i].length; j++) {
-                if(table[i][j] != '*') {
-                    table[i][j] = character;
-                }
+    private MineSweeper(int rowCount, int colCount, List<Cell> mines, boolean revealed) {
+        this.rowCount = rowCount;
+        this.colCount = colCount;
+        this.revealed = revealed;
+        this.mines = mines;
+        generateTable();
+    }
+
+    public MineSweeper copy(boolean revealed) {
+        return new MineSweeper(rowCount, colCount, mines, revealed);
+    }
+
+    private static int calculateNumMines(int rowNum, int colNum) {
+        // any logic that determines difficulty
+        return Math.min(rowNum * colNum, rowNum + colNum);
+    }
+
+    private static List<Cell> generateMines(int rowCount, int colCount) {
+        Random random = new Random();
+        int numMines = calculateNumMines(rowCount, colCount);
+        List<Cell> table = IntStream.range(0, rowCount * colCount)
+                                    .mapToObj(i -> Cell.of(i / colCount, i % colCount))
+                                    .collect(Collectors.toList());
+        Collections.shuffle(table, random);
+        return table.subList(0, numMines);
+    }
+
+    private void generateTable() {
+        table = new char[rowCount][colCount];
+        initializeTable(revealed ? '0' : '.');
+        setTable(mines, '*');
+        if (revealed) {
+            fillTableMineCounts();
+        }
+    }
+
+    private void fillTableMineCounts() {
+        for (Cell mine : mines) {
+            List<Cell> neighbours = mine.neighbours()
+                                        .stream()
+                                        .filter(c -> c.isWithin(rowCount, colCount))
+                                        .filter(c -> table[c.getRow()][c.getCol()] == '0')
+                                        .collect(Collectors.toList());
+            for (Cell cell : neighbours) {
+                long numNeighbouringMines = cell.neighbours()
+                                                .stream()
+                                                .filter(c -> c.isWithin(rowCount, colCount))
+                                                .filter(c -> table[c.getRow()][c.getCol()] == '*')
+                                                .count();
+                table[cell.getRow()][cell.getCol()] = Long.toString(numNeighbouringMines).charAt(0);
             }
         }
     }
 
-    private void generateMines() {
-        randStar = new Random();
-        for (int i=0; i < table.length; i++) {
-            table[randStar.nextInt(table.length)][randStar.nextInt(table[table[i].length-1].length)]='*';
+    private void initializeTable(char c) {
+        for (int i = 0; i < rowCount; i++) {
+            for (int j = 0; j < colCount; j++) {
+                table[i][j] = c;
+            }
         }
     }
 
-
-    public void showNumbers() {
-        generateFields('0');
-        for (int row = 0; row < table.length; row++) {
-            for (int col=0; col < table[row].length; col++) {
-                if (table[row][col] == '*') {
-                    for (int x = -1; x <= 1; x++) {
-                        for (int y = -1; y <= 1; y++) {
-                            if ((row + x >= 0 && row + x <= table[row].length - 1) &&
-                                    (col + y >= 0 && col + y <= table[col].length - 1) &&
-                                    ((table[row + x][col + y] != '*'))) {
-                                String field = String.valueOf(table[row + x][col + y]);
-                                Integer fieldNum = Integer.parseInt(field) + 1;
-                                table[row + x][col + y] = Integer.toString(fieldNum).charAt(0);
-                            }
-                        }
-                    }
-                }
-            }
-        }
+    private void setTable(List<Cell> fields, char c) {
+        fields.forEach(f -> table[f.getRow()][f.getCol()] = c);
     }
 
     @Override
     public String toString() {
-        String stringTable = "";
+        StringBuilder stringTable = new StringBuilder();
         for (char[] rows : table) {
-            stringTable += Arrays.toString(rows) + '\n';
+            stringTable.append(Arrays.toString(rows) + '\n');
         }
-        return stringTable;
+        return stringTable.toString();
     }
 }

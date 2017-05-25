@@ -7,8 +7,7 @@ public class Main {
 
         MineSweeper game = new MineSweeper(5,5);
         System.out.println(game.toString());
-        game.showNumbers();
-        System.out.println(game.toString());
+        System.out.println(game.copy(true).toString());
 
     }
 
