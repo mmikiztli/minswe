@@ -59,14 +59,12 @@ public class MineSweeper {
 
     private void fillTableMineCounts() {
         for (Cell mine : mines) {
-            List<Cell> neighbours = mine.neighbours()
-                                        .stream()
+            List<Cell> neighbours = mine.neighbours().stream()
                                         .filter(c -> c.isWithin(rowCount, colCount))
                                         .filter(c -> table[c.getRow()][c.getCol()] == '0')
                                         .collect(Collectors.toList());
             for (Cell cell : neighbours) {
-                long numNeighbouringMines = cell.neighbours()
-                                                .stream()
+                long numNeighbouringMines = cell.neighbours().stream()
                                                 .filter(c -> c.isWithin(rowCount, colCount))
                                                 .filter(c -> table[c.getRow()][c.getCol()] == '*')
                                                 .count();
